@@ -1,0 +1,564 @@
+{
+	"info": {
+		"_postman_id": "8b5d3a5a-4b2a-4a26-9fcf-6d9b936d5fc2",
+		"name": "E-Ticketing Helpdesk - Supabase API",
+		"description": "Koleksi request Postman untuk menguji API backend Supabase E-Ticketing Helpdesk Mobile (Auth & REST Database).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Sign Up (Pendaftaran User Baru)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"ilyas@example.com\",\n    \"password\": \"password123\",\n    \"data\": {\n        \"username\": \"ilyas\",\n        \"full_name\": \"Ilyas\",\n        \"role\": \"User\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/auth/v1/signup",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"signup"
+							]
+						},
+						"description": "Mendaftarkan user baru ke Supabase Auth. Trigger database akan otomatis membuat entri profil di tabel `profiles`."
+					},
+					"response": []
+				},
+				{
+					"name": "Sign In (Masuk dengan Email & Password)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access_token) {",
+									"    pm.environment.set(\"userToken\", jsonData.access_token);",
+									"    pm.environment.set(\"userId\", jsonData.user.id);",
+									"    pm.environment.set(\"userEmail\", jsonData.user.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"ilyas@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/auth/v1/token?grant_type=password",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "password"
+								}
+							]
+						},
+						"description": "Melakukan login untuk mendapatkan Access Token (Bearer JWT token). Token yang didapatkan akan otomatis disimpan ke variabel lingkungan `userToken`."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Profiles",
+			"item": [
+				{
+					"name": "Get User Profile (Ambil Data Profil Pengguna)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/profiles?id=eq.{{userId}}&select=*",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"profiles"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{userId}}"
+								},
+								{
+									"key": "select",
+									"value": "*"
+								}
+							]
+						},
+						"description": "Mengambil data profil pengguna aktif dari tabel `profiles` berdasarkan User ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Role (Ubah Peran - Hanya Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"Admin\"\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/profiles?id=eq.{{userId}}",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"profiles"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{userId}}"
+								}
+							]
+						},
+						"description": "Mengubah peran pengguna. *Catatan: Nilai harus berupa 'User', 'Helpdesk', atau 'Admin' (case-sensitive).* Jika diketik huruf kecil seperti 'admin', database akan memicu error check constraint."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Tickets",
+			"item": [
+				{
+					"name": "Get All Tickets (Ambil Semua Tiket)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/tickets?select=*&order=created_at.desc",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "select",
+									"value": "*"
+								},
+								{
+									"key": "order",
+									"value": "created_at.desc"
+								}
+							]
+						},
+						"description": "Mengambil semua daftar tiket di database, diurutkan berdasarkan waktu pembuatan terbaru."
+					},
+					"response": []
+				},
+				{
+					"name": "Create New Ticket (Buat Tiket Baru)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"TCK-1783350000000\",\n    \"title\": \"Kendala Printer Macet\",\n    \"description\": \"Printer lantai 3 tidak dapat merespons perintah print dan kertas menyangkut.\",\n    \"category\": \"Hardware\",\n    \"priority\": \"High\",\n    \"status\": \"Open\",\n    \"creator_email\": \"{{userEmail}}\",\n    \"creator_name\": \"Ilyas\",\n    \"image_url\": null\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/tickets",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"tickets"
+							]
+						},
+						"description": "Membuat tiket pengaduan baru."
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Ticket (Tugaskan Tiket ke Staf Teknisi)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"assigned_to_email\": \"support@example.com\",\n    \"assigned_to_name\": \"Staf Support Teknis\",\n    \"status\": \"In Progress\"\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/tickets?id=eq.TCK-1783350000000",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.TCK-1783350000000"
+								}
+							]
+						},
+						"description": "Menugaskan tiket ke Helpdesk tertentu dan secara otomatis mengubah statusnya menjadi 'In Progress'."
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Ticket (Selesaikan Laporan Kendala)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"Closed\"\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/tickets?id=eq.TCK-1783350000000",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.TCK-1783350000000"
+								}
+							]
+						},
+						"description": "Mengubah status tiket menjadi 'Closed' ketika masalah telah berhasil diselesaikan."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Comments & Logs",
+			"item": [
+				{
+					"name": "Get Comments (Ambil Komentar / Diskusi Tiket)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/comments?ticket_id=eq.TCK-1783350000000&select=*&order=created_at.asc",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "ticket_id",
+									"value": "eq.TCK-1783350000000"
+								},
+								{
+									"key": "select",
+									"value": "*"
+								},
+								{
+									"key": "order",
+									"value": "created_at.asc"
+								}
+							]
+						},
+						"description": "Mengambil semua diskusi/tanggapan dari tiket terkait."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Comment (Tambahkan Tanggapan Baru)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"COM-1783359999999\",\n    \"ticket_id\": \"TCK-1783350000000\",\n    \"sender_email\": \"{{userEmail}}\",\n    \"sender_name\": \"Ilyas\",\n    \"sender_role\": \"User\",\n    \"message\": \"Terima kasih, mohon bantuannya segera karena dokumen harus dicetak hari ini.\",\n    \"image_url\": null\n}"
+						},
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/comments",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"comments"
+							]
+						},
+						"description": "Memposting tanggapan baru pada kolom diskusi tiket."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Activity Logs (Ambil Riwayat Audit Log)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{supabaseAnonKey}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{supabaseUrl}}/rest/v1/ticket_activity_logs?ticket_id=eq.TCK-1783350000000&select=*&order=created_at.asc",
+							"host": [
+								"{{supabaseUrl}}"
+							],
+							"path": [
+								"rest",
+								"v1",
+								"ticket_activity_logs"
+							],
+							"query": [
+								{
+									"key": "ticket_id",
+									"value": "eq.TCK-1783350000000"
+								},
+								{
+									"key": "select",
+									"value": "*"
+								},
+								{
+									"key": "order",
+									"value": "created_at.asc"
+								}
+							]
+						},
+						"description": "Mengambil seluruh riwayat log aktivitas (audit trail) untuk melacak status perubahan tiket secara transparan."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "supabaseUrl",
+			"value": "https://qcalvfyckhhmbstflaed.supabase.co",
+			"type": "string"
+		},
+		{
+			"key": "supabaseAnonKey",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userEmail",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
