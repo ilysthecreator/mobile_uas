@@ -22,9 +22,9 @@ class UserModel {
       'id': id,
       'username': username,
       'email': email,
-      'fullName': fullName,
+      'full_name': fullName,
       'role': role,
-      'avatarUrl': avatarUrl,
+      'avatar_url': avatarUrl,
     };
   }
 
@@ -33,9 +33,9 @@ class UserModel {
       id: map['id'] ?? '',
       username: map['username'] ?? '',
       email: map['email'] ?? '',
-      fullName: map['fullName'] ?? '',
+      fullName: map['full_name'] ?? map['fullName'] ?? '',
       role: map['role'] ?? 'User',
-      avatarUrl: map['avatarUrl'],
+      avatarUrl: map['avatar_url'] ?? map['avatarUrl'],
     );
   }
 
@@ -59,5 +59,12 @@ class UserModel {
       role: role ?? this.role,
       avatarUrl: avatarUrl ?? this.avatarUrl,
     );
+  }
+
+  String get avatarLetter {
+    final name = fullName.isNotEmpty
+        ? fullName
+        : (username.isNotEmpty ? username : email);
+    return name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
   }
 }

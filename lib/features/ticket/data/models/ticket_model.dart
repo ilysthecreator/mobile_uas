@@ -30,6 +30,42 @@ class TicketModel {
     this.imageUrl,
   });
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'category': category,
+      'priority': priority,
+      'status': status,
+      'creator_email': creatorEmail,
+      'creator_name': creatorName,
+      'assigned_to_email': assignedToEmail,
+      'assigned_to_name': assignedToName,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'image_url': imageUrl,
+    };
+  }
+
+  factory TicketModel.fromMap(Map<String, dynamic> map) {
+    return TicketModel(
+      id: map['id'] ?? '',
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      category: map['category'] ?? '',
+      priority: map['priority'] ?? '',
+      status: map['status'] ?? '',
+      creatorEmail: map['creator_email'] ?? '',
+      creatorName: map['creator_name'] ?? '',
+      assignedToEmail: map['assigned_to_email'],
+      assignedToName: map['assigned_to_name'],
+      createdAt: DateTime.parse(map['created_at'] ?? DateTime.now().toIso8601String()),
+      updatedAt: DateTime.parse(map['updated_at'] ?? DateTime.now().toIso8601String()),
+      imageUrl: map['image_url'],
+    );
+  }
+
   TicketModel copyWith({
     String? id,
     String? title,
@@ -83,6 +119,32 @@ class CommentModel {
     required this.createdAt,
     this.imageUrl,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'ticket_id': ticketId,
+      'sender_email': senderEmail,
+      'sender_name': senderName,
+      'sender_role': senderRole,
+      'message': message,
+      'created_at': createdAt.toIso8601String(),
+      'image_url': imageUrl,
+    };
+  }
+
+  factory CommentModel.fromMap(Map<String, dynamic> map) {
+    return CommentModel(
+      id: map['id'] ?? '',
+      ticketId: map['ticket_id'] ?? '',
+      senderEmail: map['sender_email'] ?? '',
+      senderName: map['sender_name'] ?? '',
+      senderRole: map['sender_role'] ?? '',
+      message: map['message'] ?? '',
+      createdAt: DateTime.parse(map['created_at'] ?? DateTime.now().toIso8601String()),
+      imageUrl: map['image_url'],
+    );
+  }
 }
 
 class TicketActivityLog {
@@ -101,4 +163,26 @@ class TicketActivityLog {
     required this.actorName,
     required this.createdAt,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'ticket_id': ticketId,
+      'title': title,
+      'description': description,
+      'actor_name': actorName,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  factory TicketActivityLog.fromMap(Map<String, dynamic> map) {
+    return TicketActivityLog(
+      id: map['id'] ?? '',
+      ticketId: map['ticket_id'] ?? '',
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      actorName: map['actor_name'] ?? '',
+      createdAt: DateTime.parse(map['created_at'] ?? DateTime.now().toIso8601String()),
+    );
+  }
 }
