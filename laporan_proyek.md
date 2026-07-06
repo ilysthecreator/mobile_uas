@@ -190,6 +190,45 @@ Aplikasi Flutter terhubung dengan backend Supabase melalui SDK **`supabase_flutt
    * File gambar disimpan di dalam public bucket bernama `ticket-attachments`.
    * Setelah unggah sukses, aplikasi mendapatkan URL publik gambar tersebut untuk disimpan ke dalam kolom `image_url` pada tabel `tickets` atau `comments`.
 
+#### SQL Script Konfigurasi Policy Supabase Storage
+Untuk memastikan bucket `ticket-attachments` dapat menerima unggahan berkas dan dapat diakses secara publik, jalankan script SQL berikut di **SQL Editor** Supabase Console Anda:
+
+```sql
+-- 1. Membuat Bucket "ticket-attachments" jika belum ada
+insert into storage.buckets (id, name, public)
+values ('ticket-attachments', 'ticket-attachments', true)
+on conflict (id) do nothing;
+
+-- 2. Policy agar file gambar dapat diakses secara publik (SELECT)
+create policy "Allow public read access on ticket-attachments"
+on storage.objects for select
+using ( bucket_id = 'ticket-attachments' );
+
+-- 3. Policy agar pengguna terautentikasi dapat mengunggah file (INSERT)
+create policy "Allow authenticated insert access on ticket-attachments"
+on storage.objects for insert
+with check (
+  bucket_id = 'ticket-attachments' 
+  and auth.role() = 'authenticated'
+);
+
+-- 4. Policy agar pengguna terautentikasi dapat memperbarui file (UPDATE)
+create policy "Allow authenticated update access on ticket-attachments"
+on storage.objects for update
+using (
+  bucket_id = 'ticket-attachments' 
+  and auth.role() = 'authenticated'
+);
+
+-- 5. Policy agar pengguna terautentikasi dapat menghapus file (DELETE)
+create policy "Allow authenticated delete access on ticket-attachments"
+on storage.objects for delete
+using (
+  bucket_id = 'ticket-attachments' 
+  and auth.role() = 'authenticated'
+);
+```
+
 ---
 
 ### 3.4 Dokumentasi API Backend (Postman Collection)
