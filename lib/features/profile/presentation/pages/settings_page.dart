@@ -270,13 +270,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           'Helpdesk Central',
           style: GoogleFonts.hankenGrotesk(
             fontWeight: FontWeight.bold,
-            color: AppTheme.primaryNavy,
+            color: isDark ? Colors.white : AppTheme.primaryNavy,
           ),
         ),
         backgroundColor: AppTheme.surfaceColor(context),
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: const Icon(Icons.menu, color: AppTheme.primaryNavy),
+        leading: Icon(Icons.menu, color: isDark ? Colors.white : AppTheme.primaryNavy),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20),
@@ -513,6 +513,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 4, top: 8),
       child: Text(
@@ -520,7 +521,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         style: GoogleFonts.jetBrainsMono(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppTheme.primaryNavy,
+          color: isDark ? const Color(0xFF94A3B8) : AppTheme.primaryNavy,
           letterSpacing: 1.5,
         ),
       ),
@@ -535,6 +536,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveIconColor = isDark ? Colors.white : iconColor;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Material(
@@ -549,10 +553,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
+              color: effectiveIconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: effectiveIconColor, size: 20),
           ),
           title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.textPrimary(context))),
           subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context))),
@@ -573,6 +577,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     Widget? trailing,
     required VoidCallback onTap,
   }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveIconColor = isDark ? Colors.white : iconColor;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Material(
@@ -587,10 +594,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
+              color: effectiveIconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: effectiveIconColor, size: 20),
           ),
           title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.textPrimary(context))),
           subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context))),

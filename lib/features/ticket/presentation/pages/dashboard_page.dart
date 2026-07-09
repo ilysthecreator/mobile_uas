@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:project_mobile/features/auth/presentation/providers/auth_provider.dart';
@@ -10,6 +11,7 @@ import 'notification_page.dart';
 import 'package:project_mobile/features/profile/presentation/pages/settings_page.dart';
 import 'package:project_mobile/core/theme/app_theme.dart';
 import 'package:project_mobile/core/utils/date_formatter.dart';
+import 'pdf_preview_page.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
@@ -266,14 +268,14 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
               height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.primaryNavy.withValues(alpha: 0.1),
-                border: Border.all(color: AppTheme.primaryNavy.withValues(alpha: 0.2)),
+                color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.primaryNavy.withValues(alpha: 0.1),
+                border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.2) : AppTheme.primaryNavy.withValues(alpha: 0.2)),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: user.avatarUrl != null
                     ? Image.network(user.avatarUrl!, fit: BoxFit.cover)
-                    : const Icon(Icons.account_circle, color: AppTheme.primaryNavy, size: 24),
+                    : Icon(Icons.account_circle, color: isDark ? Colors.white : AppTheme.primaryNavy, size: 24),
               ),
             ),
             const SizedBox(width: 12),
@@ -292,10 +294,10 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
                 const SizedBox(height: 2),
                 Text(
                   'Halo, ${user.fullName}!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.primaryNavy,
+                    color: isDark ? Colors.white : AppTheme.primaryNavy,
                   ),
                 ),
               ],
@@ -303,6 +305,40 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
           ],
         ),
         actions: [
+          if (user.role == 'Admin')
+            Container(
+              margin: const EdgeInsets.only(right: 8),
+              child: Center(
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => PdfPreviewPage(tickets: ticketProviderVal.tickets),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark 
+                          ? const Color(0xFF213145).withValues(alpha: 0.35)
+                          : AppTheme.primaryNavy.withValues(alpha: 0.05),
+                      border: isDark 
+                          ? Border.all(color: Colors.white.withValues(alpha: 0.05))
+                          : null,
+                    ),
+                    child: Icon(
+                      Icons.picture_as_pdf_rounded,
+                      color: isDark ? Colors.white : AppTheme.primaryNavy,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Container(
             margin: const EdgeInsets.only(right: 20),
             child: Center(
@@ -319,12 +355,15 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isDark 
-                        ? const Color(0xFF1E293B) 
+                        ? const Color(0xFF213145).withValues(alpha: 0.35)
                         : AppTheme.primaryNavy.withValues(alpha: 0.05),
+                    border: isDark 
+                        ? Border.all(color: Colors.white.withValues(alpha: 0.05))
+                        : null,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.notifications_outlined,
-                    color: AppTheme.primaryNavy,
+                    color: isDark ? Colors.white : AppTheme.primaryNavy,
                     size: 22,
                   ),
                 ),
@@ -477,300 +516,209 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
     final int prosesCount = (stats['Assigned'] ?? 0) + (stats['In Progress'] ?? 0);
     final int selesaiCount = stats['Closed'] ?? 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 1. Total Laporan (Full Width)
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    // 1. Total Laporan Card
+    Widget buildTotalCard() {
+      final cardContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'STATISTIK TIKET',
-                    style: TextStyle(
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.analytics_outlined,
-                    color: AppTheme.primaryNavy,
-                    size: 20,
-                  ),
-                ],
+              Text(
+                'STATISTIK TIKET',
+                style: TextStyle(
+                  fontFamily: 'JetBrains Mono',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? const Color(0xFFC5C5D3) : const Color(0xFF64748B),
+                  letterSpacing: 0.5,
+                ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${stats['Total'] ?? 0}',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryNavy,
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 2.0),
-                    child: Text(
-                      'Total Laporan',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.analytics_outlined,
+                color: isDark ? Colors.white : AppTheme.primaryNavy,
+                size: 20,
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-
-        // 2. Terbuka & Proses (Two Columns Split)
-        Row(
-          children: [
-            // Terbuka
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDark 
-                      ? const Color(0xFFEF4444).withValues(alpha: 0.1) 
-                      : const Color(0xFFEF4444).withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${stats['Total'] ?? 0}',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                  height: 1.0,
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      // Left accent bar
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: 4,
-                        child: Container(
-                          color: const Color(0xFFEF4444),
-                        ),
-                      ),
-                      // Content
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              right: -10,
-                              bottom: -10,
-                              child: Icon(
-                                Icons.error_outline,
-                                size: 48,
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.08),
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'TERBUKA',
-                                  style: TextStyle(
-                                    fontFamily: 'JetBrains Mono',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFEF4444),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '$openCount',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2.0),
+                child: Text(
+                  'Total Laporan',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? const Color(0xFFC5C5D3) : const Color(0xFF64748B),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            // Proses
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDark 
-                      ? const Color(0xFF3B82F6).withValues(alpha: 0.1) 
-                      : const Color(0xFF3B82F6).withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      // Left accent bar
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: 4,
-                        child: Container(
-                          color: const Color(0xFF3B82F6),
-                        ),
-                      ),
-                      // Content
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              right: -10,
-                              bottom: -10,
-                              child: Icon(
-                                Icons.sync,
-                                size: 48,
-                                color: const Color(0xFF3B82F6).withValues(alpha: 0.08),
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'PROSES',
-                                  style: TextStyle(
-                                    fontFamily: 'JetBrains Mono',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF3B82F6),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '$prosesCount',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+            ],
+          ),
+        ],
+      );
 
-        // 3. Selesai Minggu Ini (Full Width)
-        Container(
-          decoration: BoxDecoration(
-            color: isDark 
-                ? const Color(0xFF10B981).withValues(alpha: 0.1) 
-                : const Color(0xFF10B981).withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+      if (isDark) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF213145).withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryNavy.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: cardContent,
             ),
           ),
-          child: ClipRRect(
+        );
+      } else {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            child: Stack(
+            border: Border.all(
+              color: const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: cardContent,
+        );
+      }
+    }
+
+    // 2. Glassmorphic Bento Cards Builder
+    Widget buildStatusCard(String label, int count, Color statusColor, IconData icon) {
+      final cardContent = Stack(
+        children: [
+          // Left accent bar
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 4,
+            child: Container(
+              color: statusColor,
+            ),
+          ),
+          Positioned(
+            right: -10,
+            bottom: -10,
+            child: Icon(
+              icon,
+              size: 48,
+              color: statusColor.withValues(alpha: isDark ? 0.08 : 0.04),
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left accent bar
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 4,
-                  child: Container(
-                    color: const Color(0xFF10B981),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                // Content
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'SELESAI MINGGU INI',
-                            style: TextStyle(
-                              fontFamily: 'JetBrains Mono',
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$selesaiCount',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : const Color(0xFF1E293B),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
-                        ),
-                        child: const Icon(
-                          Icons.check_circle_outline,
-                          color: Color(0xFF10B981),
-                          size: 22,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 8),
+                Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
               ],
             ),
           ),
+        ],
+      );
+
+      if (isDark) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF213145).withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: statusColor.withValues(alpha: 0.25),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: statusColor.withValues(alpha: 0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: cardContent,
+            ),
+          ),
+        );
+      } else {
+        return Container(
+          decoration: BoxDecoration(
+            color: statusColor.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: cardContent,
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        buildTotalCard(),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: buildStatusCard('TERBUKA', openCount, const Color(0xFFEF4444), Icons.error_outline)),
+            const SizedBox(width: 12),
+            Expanded(child: buildStatusCard('PROSES', prosesCount, const Color(0xFF3B82F6), Icons.sync)),
+          ],
         ),
+        const SizedBox(height: 12),
+        buildStatusCard('SELESAI MINGGU INI', selesaiCount, const Color(0xFF10B981), Icons.check_circle_outline),
       ],
     );
   }
@@ -931,6 +879,72 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
 
     const categoryIcon = Icons.confirmation_num_rounded;
 
+    final cardContent = IntrinsicHeight(
+      child: Row(
+        children: [
+          // Left accent bar
+          Container(
+            width: 4,
+            decoration: BoxDecoration(
+              color: statusColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.1) : AppTheme.primaryNavy.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(categoryIcon, color: isDark ? Colors.white : AppTheme.primaryNavy, size: 22),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ticket.title,
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${ticket.id} • ${DateFormatter.formatDateTime(ticket.createdAt)}',
+                          style: TextStyle(fontSize: 11, color: AppTheme.textSecondary(context)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      ticket.status,
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -944,78 +958,38 @@ class _DashboardTabState extends ConsumerState<DashboardTab> {
           });
         },
         borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.cardColor(context),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.borderColor(context)),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              children: [
-                // Left accent bar
-                Container(
-                  width: 4,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      bottomLeft: Radius.circular(20),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryNavy.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(categoryIcon, color: AppTheme.primaryNavy, size: 22),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ticket.title,
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context)),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${ticket.id} • ${DateFormatter.formatDateTime(ticket.createdAt)}',
-                                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary(context)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            ticket.status,
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
-                          ),
+        child: isDark
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF213145).withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.25),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: statusColor.withValues(alpha: 0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
+                    child: cardContent,
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
+              )
+            : Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.cardColor(context),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderColor(context)),
+                ),
+                child: cardContent,
+              ),
       ),
     );
   }

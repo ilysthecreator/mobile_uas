@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -74,7 +75,7 @@ class NotificationPage extends ConsumerWidget {
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8F9FF),
       elevation: 0,
       scrolledUnderElevation: 0,
-      leading: const Icon(Icons.menu, color: AppTheme.primaryNavy),
+      leading: Icon(Icons.menu, color: isDark ? Colors.white : AppTheme.primaryNavy),
       title: Text(
         'Helpdesk Central',
         style: GoogleFonts.hankenGrotesk(
@@ -84,7 +85,7 @@ class NotificationPage extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.search_rounded, color: AppTheme.primaryNavy),
+          icon: Icon(Icons.search_rounded, color: isDark ? Colors.white : AppTheme.primaryNavy),
           onPressed: () {},
         ),
         if (user != null)
@@ -104,10 +105,10 @@ class NotificationPage extends ConsumerWidget {
                   ? Image.network(user.avatarUrl!, fit: BoxFit.cover)
                   : Text(
                       user.avatarLetter,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryNavy,
+                        color: isDark ? Colors.white : AppTheme.primaryNavy,
                       ),
                     ),
             ),
@@ -115,75 +116,137 @@ class NotificationPage extends ConsumerWidget {
       ],
     );
 
-    // Bento card helper (local function renamed to not start with underscore)
-    Widget buildBentoCard(String title, String count) {
-      return Opacity(
-        opacity: 0.65,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(12),
-              bottomRight: Radius.circular(12),
+    // Bento card helper
+    Widget buildBentoCard(String title, String count, Color accentColor) {
+      final cardContent = IntrinsicHeight(
+        child: Row(
+          children: [
+            // Left accent bar
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+              ),
             ),
-            border: Border(
-              left: const BorderSide(color: Color(0xFFC5C5D3), width: 4),
-              top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-              right: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-              bottom: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+            // Content Column
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title.toUpperCase(),
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? const Color(0xFFC5C5D3) : const Color(0xFF64748B),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      count,
+                      style: GoogleFonts.hankenGrotesk(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0B1C30),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (isDark) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF213145).withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: cardContent,
+            ),
+          ),
+        );
+      } else {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE2E8F0),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                count,
-                style: GoogleFonts.hankenGrotesk(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF0B1C30),
-                ),
-              ),
-            ],
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: cardContent,
           ),
-        ),
-      );
+        );
+      }
     }
 
     // Bento summary grid
     Widget buildBentoSummary() {
-      return GridView.count(
-        crossAxisCount: 3,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.15,
-        children: [
-          buildBentoCard('Unresolved', formatCount(unresolvedCount)),
-          buildBentoCard('Active Tasks', formatCount(activeCount)),
-          buildBentoCard('Admin Alerts', formatCount(alertCount)),
-        ],
-      );
+      final double width = MediaQuery.of(context).size.width;
+      
+      Widget gridContent() {
+        if (width > 600) {
+          return Row(
+            children: [
+              Expanded(child: buildBentoCard('Unresolved', formatCount(unresolvedCount), const Color(0xFFF59E0B))),
+              const SizedBox(width: 12),
+              Expanded(child: buildBentoCard('Active Tasks', formatCount(activeCount), const Color(0xFF3B82F6))),
+              const SizedBox(width: 12),
+              Expanded(child: buildBentoCard('Admin Alerts', formatCount(alertCount), const Color(0xFFEF4444))),
+            ],
+          );
+        } else {
+          return GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            childAspectRatio: 1.05,
+            children: [
+              buildBentoCard('Unresolved', formatCount(unresolvedCount), const Color(0xFFF59E0B)),
+              buildBentoCard('Active Tasks', formatCount(activeCount), const Color(0xFF3B82F6)),
+              buildBentoCard('Admin Alerts', formatCount(alertCount), const Color(0xFFEF4444)),
+            ],
+          );
+        }
+      }
+
+      return gridContent();
     }
 
     Widget buildEmptyState() {
@@ -199,9 +262,9 @@ class NotificationPage extends ConsumerWidget {
                 color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF4FF),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.notifications_off_outlined,
-                color: AppTheme.primaryNavy,
+                color: isDark ? Colors.white : AppTheme.primaryNavy,
                 size: 44,
               ),
             ),
@@ -374,7 +437,7 @@ class NotificationPage extends ConsumerWidget {
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppTheme.primaryNavy,
+                            color: isDark ? Colors.white : AppTheme.primaryNavy,
                           ),
                         ),
                       ),

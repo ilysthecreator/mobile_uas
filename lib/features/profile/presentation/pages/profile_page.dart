@@ -82,7 +82,7 @@ class ProfilePage extends ConsumerWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       leading: isTab
-          ? const Icon(Icons.menu, color: AppTheme.primaryNavy)
+          ? Icon(Icons.menu, color: isDark ? Colors.white : AppTheme.primaryNavy)
           : IconButton(
               icon: Icon(Icons.arrow_back_rounded, color: AppTheme.textPrimary(context)),
               onPressed: () => Navigator.of(context).pop(),
@@ -96,7 +96,7 @@ class ProfilePage extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.search_rounded, color: AppTheme.primaryNavy),
+          icon: Icon(Icons.search_rounded, color: isDark ? Colors.white : AppTheme.primaryNavy),
           onPressed: () {},
         ),
         Container(
@@ -115,10 +115,10 @@ class ProfilePage extends ConsumerWidget {
                 ? Image.network(user.avatarUrl!, fit: BoxFit.cover)
                 : Text(
                     user.avatarLetter,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryNavy,
+                      color: isDark ? Colors.white : AppTheme.primaryNavy,
                     ),
                   ),
           ),
